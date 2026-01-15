@@ -1,0 +1,531 @@
+================================================================================
+PROYECTO: minimarket_frontend
+RUTA: C:\Users\Nvidia\Desktop\minimarket_frontend
+FECHA: Thu Jan 15 11:34:05 GMT-05:00 2026
+================================================================================
+
+
+[FILE] eslint.config.js
+------------------------------------------------------------
+import js from '@eslint/js'
+import globals from 'globals'
+import reactHooks from 'eslint-plugin-react-hooks'
+import reactRefresh from 'eslint-plugin-react-refresh'
+import { defineConfig, globalIgnores } from 'eslint/config'
+
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{js,jsx}'],
+    extends: [
+      js.configs.recommended,
+      reactHooks.configs.flat.recommended,
+      reactRefresh.configs.vite,
+    ],
+    languageOptions: {
+      ecmaVersion: 2020,
+      globals: globals.browser,
+      parserOptions: {
+        ecmaVersion: 'latest',
+        ecmaFeatures: { jsx: true },
+        sourceType: 'module',
+      },
+    },
+    rules: {
+      'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
+    },
+  },
+])
+
+------------------------------------------------------------
+
+[FILE] index.html
+------------------------------------------------------------
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>minimarket_frontend</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
+
+------------------------------------------------------------
+
+
+[DIR] public/
+
+[FILE] README.md
+------------------------------------------------------------
+# React + Vite
+
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+
+Currently, two official plugins are available:
+
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+
+## React Compiler
+
+The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+
+## Expanding the ESLint configuration
+
+If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+
+------------------------------------------------------------
+
+[DIR] src/
+
+[DIR] src/api/
+
+[FILE] src/api/api.js
+------------------------------------------------------------
+// src/api/api.js
+
+const API_URL = "http://localhost:8080/api";
+
+/**
+ * Login de usuario
+ * Guarda el token JWT en localStorage
+ */
+export async function loginUser(username, password) {
+  const response = await fetch(`${API_URL}/auth/signin`, {
+    method: "POST",
+
+    // 🔴 CLAVE: NO usar cookies (JWT va en headers)
+    credentials: "omit",
+
+    headers: {
+      "Content-Type": "application/json",
+    },
+
+    body: JSON.stringify({
+      username,
+      password,
+    }),
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.message || "Usuario o contraseña incorrectos");
+  }
+
+  // Guardar token
+  localStorage.setItem("token", data.token);
+  localStorage.setItem("user", JSON.stringify(data));
+
+  return data;
+}
+
+/**
+ * Obtiene el token JWT
+ */
+export function getToken() {
+  return localStorage.getItem("token");
+}
+
+/**
+ * Logout
+ */
+export function logoutUser() {
+  localStorage.removeItem("token");
+  localStorage.removeItem("user");
+}
+
+/**
+ * Fetch con JWT para endpoints protegidos
+ */
+export async function fetchWithAuth(endpoint, options = {}) {
+  const token = getToken();
+
+  if (!token) {
+    throw new Error("No hay token. Debes iniciar sesión.");
+  }
+
+  const response = await fetch(`${API_URL}${endpoint}`, {
+    ...options,
+
+    // 🔴 CLAVE: JWT solo en headers
+    credentials: "omit",
+
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+      ...(options.headers || {}),
+    },
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.message || "Error en petición autenticada");
+  }
+
+  return data;
+}
+
+export default API_URL;
+
+
+
+
+
+
+
+
+
+
+
+
+
+// // src/api/api.js
+// const API_URL = "http://localhost:8080/api";
+
+// /**
+//  * Realiza login de usuario.
+//  * Guarda el token JWT en localStorage si es exitoso.
+//  *
+//  * @param {string} username
+//  * @param {string} password
+//  * @returns {Promise<object>} data del login { token, username, roles... }
+//  */
+// export async function loginUser(username, password) {
+//   try {
+//     const response = await fetch(`${API_URL}/auth/signin`, {
+//       method: "POST",
+//       headers: {
+//         "Content-Type": "application/json",
+//       },
+//       body: JSON.stringify({ username, password }),
+//     });
+
+//     if (!response.ok) {
+//       const errorData = await response.json();
+//       throw new Error(errorData.message || "Usuario o contraseña inválidos");
+//     }
+
+//     const data = await response.json();
+
+//     // Guardar token en localStorage
+//     if (data.token) {
+//       localStorage.setItem("token", data.token);
+//     }
+
+//     return data;
+//   } catch (error) {
+//     console.error("Error en login:", error);
+//     throw error;
+//   }
+// }
+
+// /**
+//  * Devuelve el token JWT almacenado en localStorage
+//  * @returns {string|null}
+//  */
+// export function getToken() {
+//   return localStorage.getItem("token");
+// }
+
+// /**
+//  * Elimina el token JWT de localStorage (logout)
+//  */
+// export function logoutUser() {
+//   localStorage.removeItem("token");
+// }
+
+// /**
+//  * Helper para hacer peticiones protegidas a la API.
+//  *
+//  * @param {string} endpoint - endpoint relativo, por ejemplo '/products'
+//  * @param {object} options - opciones adicionales para fetch
+//  * @returns {Promise<object>} respuesta de la API
+//  */
+// export async function fetchWithAuth(endpoint, options = {}) {
+//   const token = getToken();
+
+//   if (!token) {
+//     throw new Error("Token no encontrado. Debes iniciar sesión.");
+//   }
+
+//   const response = await fetch(`${API_URL}${endpoint}`, {
+//     ...options,
+//     headers: {
+//       "Content-Type": "application/json",
+//       "Authorization": `Bearer ${token}`,
+//       ...(options.headers || {}),
+//     },
+//   });
+
+//   if (!response.ok) {
+//     const errorData = await response.json().catch(() => ({}));
+//     throw new Error(errorData.message || "Error en la petición autenticada");
+//   }
+
+//   return response.json();
+// }
+
+// export default API_URL;
+
+------------------------------------------------------------
+
+[FILE] src/App.css
+------------------------------------------------------------
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+.logo {
+  height: 6em;
+  padding: 1.5em;
+  will-change: filter;
+  transition: filter 300ms;
+}
+.logo:hover {
+  filter: drop-shadow(0 0 2em #646cffaa);
+}
+.logo.react:hover {
+  filter: drop-shadow(0 0 2em #61dafbaa);
+}
+
+@keyframes logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  a:nth-of-type(2) .logo {
+    animation: logo-spin infinite 20s linear;
+  }
+}
+
+.card {
+  padding: 2em;
+}
+
+.read-the-docs {
+  color: #888;
+}
+
+------------------------------------------------------------
+
+[DIR] src/assets/
+
+[FILE] src/index.css
+------------------------------------------------------------
+:root {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #242424;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  font-weight: 500;
+  color: #646cff;
+  text-decoration: inherit;
+}
+a:hover {
+  color: #535bf2;
+}
+
+body {
+  margin: 0;
+  display: flex;
+  place-items: center;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+h1 {
+  font-size: 3.2em;
+  line-height: 1.1;
+}
+
+button {
+  border-radius: 8px;
+  border: 1px solid transparent;
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  background-color: #1a1a1a;
+  cursor: pointer;
+  transition: border-color 0.25s;
+}
+button:hover {
+  border-color: #646cff;
+}
+button:focus,
+button:focus-visible {
+  outline: 4px auto -webkit-focus-ring-color;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    color: #213547;
+    background-color: #ffffff;
+  }
+  a:hover {
+    color: #747bff;
+  }
+  button {
+    background-color: #f9f9f9;
+  }
+}
+
+------------------------------------------------------------
+
+[DIR] src/pages/
+
+[FILE] TreePrinter.java
+------------------------------------------------------------
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+
+public class TreePrinter {
+
+    // Carpetas a ignorar
+    private static final Set<String> IGNORED_DIRS = new HashSet<>(Arrays.asList(
+            ".git",
+            ".vscode",
+            ".idea",
+            "target",
+            "node_modules",
+            "dist",
+            "build"
+    ));
+
+    // Extensiones de archivos a ignorar
+    private static final Set<String> IGNORED_EXTENSIONS = new HashSet<>(Arrays.asList(
+            ".class",
+            ".log",
+            ".iml",
+            ".lock",
+            ".tmp"
+    ));
+
+    // Archivos específicos a ignorar
+    private static final Set<String> IGNORED_FILES = new HashSet<>(Arrays.asList(
+            ".DS_Store"
+    ));
+
+    public static void main(String[] args) {
+        File root = args.length > 0 ? new File(args[0]) : new File(".");
+
+        if (!root.exists()) {
+            System.err.println("La ruta no existe");
+            return;
+        }
+
+        File output = new File("arbol.txt");
+
+        try (PrintWriter writer = new PrintWriter(new FileWriter(output))) {
+            writer.println(root.getCanonicalFile().getName());
+            printTree(root, "", writer);
+        } catch (IOException e) {
+            System.err.println("Error: " + e.getMessage());
+            return;
+        }
+
+        System.out.println("Archivo arbol.txt creado en: " + output.getAbsolutePath());
+    }
+
+    private static void printTree(File dir, String prefix, PrintWriter writer) {
+        File[] files = dir.listFiles();
+        if (files == null) return;
+
+        Arrays.sort(files, (a, b) -> {
+            if (a.isDirectory() && !b.isDirectory()) return -1;
+            if (!a.isDirectory() && b.isDirectory()) return 1;
+            return a.getName().compareToIgnoreCase(b.getName());
+        });
+
+        for (int i = 0; i < files.length; i++) {
+            File file = files[i];
+            boolean isLast = (i == files.length - 1);
+
+            if (shouldIgnore(file)) continue;
+
+            writer.println(prefix +
+                    (isLast ? "\\-- " : "|-- ") +
+                    file.getName());
+
+            if (file.isDirectory()) {
+                printTree(
+                        file,
+                        prefix + (isLast ? "    " : "|   "),
+                        writer
+                );
+            }
+        }
+    }
+
+    private static boolean shouldIgnore(File file) {
+        String name = file.getName();
+
+        if (file.isDirectory()) {
+            return IGNORED_DIRS.contains(name);
+        }
+
+        if (IGNORED_FILES.contains(name)) {
+            return true;
+        }
+
+        for (String ext : IGNORED_EXTENSIONS) {
+            if (name.endsWith(ext)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+}
+
+------------------------------------------------------------
+
+[FILE] vite.config.js
+------------------------------------------------------------
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+
+// https://vite.dev/config/
+export default defineConfig({
+  plugins: [react()],
+})
+
+------------------------------------------------------------
+
+================================================================================
+ESTADISTICAS:
+  Carpetas analizadas: 5
+  Archivos incluidos: 11
+  Tamanio total: 122284 caracteres
+================================================================================
