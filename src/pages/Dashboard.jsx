@@ -1,9 +1,14 @@
+import { Outlet } from "react-router-dom";
+import NavbarAdmin from "../components/NavbarAdmin";
+
 export default function Dashboard() {
+
   const user = JSON.parse(localStorage.getItem("user"));
   const role = user?.roles[0];
 
   return (
     <div>
+        
       <h1>Dashboard</h1>
       <p>Bienvenido <strong>{user.username}</strong></p>
 
@@ -23,8 +28,7 @@ export default function Dashboard() {
         <ul>
           <li>🧾 Registrar venta</li>
           <li>📜 Historial de ventas</li>
-        </ul>
-      )}
+        </ul>      )}
 
       {role === "ALMACENERO" && (
         <ul>

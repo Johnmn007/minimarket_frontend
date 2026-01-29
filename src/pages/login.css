@@ -1,3 +1,9 @@
+
+.placeholder-small::placeholder {
+  font-size: 1rem;
+  color: #6c757d; /* gris Bootstrap */
+}
+
 body {
     background: #eaeaea;
     min-height: 100vh;

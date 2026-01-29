@@ -1,16 +1,8 @@
-:root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+*,
+::before,
+::after {
+  box-sizing: border-box;
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
 a {
@@ -24,11 +16,7 @@ a:hover {
 
 body {
   margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
-}
+ }
 
 h1 {
   font-size: 3.2em;
@@ -66,3 +54,52 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+@media print {
+  body {
+    background: white;
+  }
+
+  button {
+    display: none;
+  }
+}
+
+.ticket-container {
+  max-width: 400px;
+  font-family: "Courier New", monospace;
+  background-color: white;
+  border: 1px solid #ddd;
+  padding: 1rem;
+  margin: auto;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.ticket-container h4 {
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+}
+
+.ticket-container table {
+  font-size: 0.85rem;
+}
+
+.ticket-container .btn {
+  min-width: 100px;
+}
+
+.card-body > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.card-body > div > div {
+  display: flex;
+  align-items: center;
+}
+
+.btn-outline-secondary {
+  padding: 0 10px;
+}
+
+

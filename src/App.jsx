@@ -1,22 +1,32 @@
 import { Routes, Route, Navigate } from "react-router-dom";
+
+// Páginas públicas
+import PublicCatalog from "./pages/PublicCatalog";
+import Ticket from "./pages/Ticket";
+
+// Admin
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
-import PublicCatalog from "./pages/PublicCatalog";
+import ProductRegister from "./pages/ProductRegister";
+import UserRegister from "./pages/UserRegister";
+
+// Rutas protegidas
 import PrivateRoute from "./routes/PrivateRoute";
 import Layout from "./components/Layout";
 
 export default function App() {
   return (
     <Routes>
-      {/* Catálogo público */}
-      <Route path="/catalogo" element={<PublicCatalog />} />
+      {/* 🌍 APP PÚBLICA */}
+      <Route path="/" element={<PublicCatalog />} />
+      <Route path="/ticket" element={<Ticket />} />
 
-      {/* Login */}
-      <Route path="/login" element={<Login />} />
+      {/* 🔐 LOGIN ADMIN (no visible, acceso manual) */}
+      <Route path="/admin/login" element={<Login />} />
 
-      {/* Rutas protegidas */}
+      {/* 🔐 ÁREA ADMIN PROTEGIDA */}
       <Route
-        path="/"
+        path="/admin"
         element={
           <PrivateRoute>
             <Layout />
@@ -24,10 +34,13 @@ export default function App() {
         }
       >
         <Route index element={<Dashboard />} />
+        <Route path="ProductRegister" element={<ProductRegister />} />
+        <Route path="UserRegister" element={<UserRegister />} />
+        {/* futuras rutas admin aquí */}
       </Route>
 
-      {/* Catch-all */}
-      <Route path="*" element={<Navigate to="/login" replace />} />
+      {/* ❌ CATCH ALL */}
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }

@@ -9,18 +9,11 @@ const API_URL = "http://localhost:8080/api";
 export async function loginUser(username, password) {
   const response = await fetch(`${API_URL}/auth/signin`, {
     method: "POST",
-
-    // 🔴 CLAVE: NO usar cookies (JWT va en headers)
     credentials: "omit",
-
     headers: {
       "Content-Type": "application/json",
     },
-
-    body: JSON.stringify({
-      username,
-      password,
-    }),
+    body: JSON.stringify({ username, password }),
   });
 
   const data = await response.json();
@@ -30,7 +23,7 @@ export async function loginUser(username, password) {
   }
 
   // Guardar token
-  localStorage.setItem("token", data.token);
+  localStorage.setItem("token", data.accessToken);
   localStorage.setItem("user", JSON.stringify(data));
 
   return data;
@@ -93,94 +86,3 @@ export default API_URL;
 
 
 
-
-
-
-
-// // src/api/api.js
-// const API_URL = "http://localhost:8080/api";
-
-// /**
-//  * Realiza login de usuario.
-//  * Guarda el token JWT en localStorage si es exitoso.
-//  *
-//  * @param {string} username
-//  * @param {string} password
-//  * @returns {Promise<object>} data del login { token, username, roles... }
-//  */
-// export async function loginUser(username, password) {
-//   try {
-//     const response = await fetch(`${API_URL}/auth/signin`, {
-//       method: "POST",
-//       headers: {
-//         "Content-Type": "application/json",
-//       },
-//       body: JSON.stringify({ username, password }),
-//     });
-
-//     if (!response.ok) {
-//       const errorData = await response.json();
-//       throw new Error(errorData.message || "Usuario o contraseña inválidos");
-//     }
-
-//     const data = await response.json();
-
-//     // Guardar token en localStorage
-//     if (data.token) {
-//       localStorage.setItem("token", data.token);
-//     }
-
-//     return data;
-//   } catch (error) {
-//     console.error("Error en login:", error);
-//     throw error;
-//   }
-// }
-
-// /**
-//  * Devuelve el token JWT almacenado en localStorage
-//  * @returns {string|null}
-//  */
-// export function getToken() {
-//   return localStorage.getItem("token");
-// }
-
-// /**
-//  * Elimina el token JWT de localStorage (logout)
-//  */
-// export function logoutUser() {
-//   localStorage.removeItem("token");
-// }
-
-// /**
-//  * Helper para hacer peticiones protegidas a la API.
-//  *
-//  * @param {string} endpoint - endpoint relativo, por ejemplo '/products'
-//  * @param {object} options - opciones adicionales para fetch
-//  * @returns {Promise<object>} respuesta de la API
-//  */
-// export async function fetchWithAuth(endpoint, options = {}) {
-//   const token = getToken();
-
-//   if (!token) {
-//     throw new Error("Token no encontrado. Debes iniciar sesión.");
-//   }
-
-//   const response = await fetch(`${API_URL}${endpoint}`, {
-//     ...options,
-//     headers: {
-//       "Content-Type": "application/json",
-//       "Authorization": `Bearer ${token}`,
-//       ...(options.headers || {}),
-//     },
-//   });
-
-//   if (!response.ok) {
-//     const errorData = await response.json().catch(() => ({}));
-//     throw new Error(errorData.message || "Error en la petición autenticada");
-//   }
-
-//   return response.json();
-// }
-
-// export default API_URL;

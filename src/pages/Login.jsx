@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { loginUser, getToken } from "../api/api";
 import logo from "../assets/Login.png";
@@ -12,9 +12,12 @@ function Login() {
 
   const navigate = useNavigate();
 
-  if (getToken()) {
-    navigate("/", { replace: true });
-  }
+  // ✅ Redirección segura si ya está logueado
+  useEffect(() => {
+    if (getToken()) {
+      navigate("/admin", { replace: true });
+    }
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -24,56 +27,68 @@ function Login() {
     try {
       await loginUser(username, password);
       setMensaje("✅ Login exitoso");
-      navigate("/", { replace: true });
+      navigate("/admin", { replace: true });
     } catch (error) {
-      setMensaje("❌ " + error.message);
+      setMensaje("❌ Credenciales incorrectas");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div
-      className="d-flex justify-content-center align-items-center"
-      style={{ minHeight: "100vh", width: "100vw", backgroundColor: "#eaeaea" }}
-    >
-      <div className="card shadow-lg border-0 p-4" style={{ maxWidth: 400, width: "90%" }}>
-        <div className="logo text-center mb-4">
-          <img src={logo} alt="MiniMarket" className="img-fluid" />
-          {/* <h2 className="text-success mt-3">grupo2</h2> */}
-        </div>
+    <div className="container d-flex justify-content-center align-items-center min-vh-100">
+      <div className="card shadow-lg p-4" style={{ width: "25rem" }}>
+        <div className="card-body p-3">
+          <div className="text-center">
+            <img src={logo} alt="MiniMarket" className="w-100" />
+          </div>
 
-        <form onSubmit={handleSubmit}>
-          <input
-            className="form-control mb-3"
-            placeholder="Usuario"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            required
-          />
-
-          <input
-            type="password"
-            className="form-control mb-4 mt-4"
-            placeholder="Contraseña"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-
-          <button 
-          className="btn btn-success w-100" 
-          style={{ width: "50%", display: "block", margin: "0 auto" }}
-          disabled={loading}>
-            {loading ? "Ingresando..." : "Ingresar"}
-          </button>
-
-          {mensaje && (
-            <div id="mensaje" className="alert alert-info text-center">
-              {mensaje}
+          <form onSubmit={handleSubmit}>
+            <div className="mb-2 mt-5">
+              <label className="fw-bold">Usuario</label>
+              <input
+                type="text"
+                className="form-control form-control-lg bg-light"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                required
+              />
             </div>
-          )}
-        </form>
+
+            <div className="mb-2">
+              <label className="fw-bold">Contraseña</label>
+              <input
+                type="password"
+                className="form-control form-control-lg bg-light"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
+
+            <button
+              type="submit"
+              className="btn btn-success w-75 btn-lg m-auto mt-4 d-block"
+              disabled={loading}
+            >
+              {loading ? "Ingresando..." : "Ingresar"}
+            </button>
+
+            <button
+              type="button"
+              className="btn btn-outline-secondary w-75 btn-lg m-auto mt-3 d-block"
+              onClick={() => navigate("/")}
+            >
+              Volver al catálogo
+            </button>
+
+            {mensaje && (
+              <div className="alert alert-info mt-3 text-center">
+                {mensaje}
+              </div>
+            )}
+          </form>
+        </div>
       </div>
     </div>
   );
