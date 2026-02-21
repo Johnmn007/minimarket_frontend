@@ -9,6 +9,7 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import ProductRegister from "./pages/ProductRegister";
 import UserRegister from "./pages/UserRegister";
+import Reportes from "./pages/Reportes";
 
 // Rutas protegidas
 import PrivateRoute from "./routes/PrivateRoute";
@@ -36,6 +37,7 @@ export default function App() {
         <Route index element={<Dashboard />} />
         <Route path="ProductRegister" element={<ProductRegister />} />
         <Route path="UserRegister" element={<UserRegister />} />
+        <Route path="reportes" element={<Reportes />} />
         {/* futuras rutas admin aquí */}
       </Route>
 

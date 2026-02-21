@@ -1,61 +1,15 @@
 /* src/pages/dashboard.css */
 
-.hover-card {
-  transition: all 0.3s ease;
-  border: 1px solid rgba(0,0,0,0.05);
-}
-
-.hover-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 1rem 3rem rgba(0,0,0,.175) !important;
-  border-color: rgba(0,0,0,0.1);
-}
-
-.stat-card {
-  border-radius: 15px;
-  overflow: hidden;
-}
-
-.stat-card .card-body {
-  padding: 1.5rem;
-}
-
-.stat-icon {
-  font-size: 3rem;
-  opacity: 0.5;
-}
-
-.welcome-banner {
-  background-size: cover;
-  background-position: center;
-  position: relative;
-  overflow: hidden;
-}
-
-.welcome-banner::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0,0,0,0.1);
-}
-
-.welcome-banner > * {
-  position: relative;
-  z-index: 1;
-}
-
 /* Animaciones */
-@keyframes pulse {
-  0% { opacity: 1; }
-  50% { opacity: 0.5; }
-  100% { opacity: 1; }
-}
-
-.loading-pulse {
-  animation: pulse 1.5s infinite;
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes slideIn {
@@ -69,34 +23,135 @@
   }
 }
 
+/* Estilos generales */
 .card {
-  animation: slideIn 0.3s ease-out;
+  animation: fadeIn 0.3s ease-out;
+  border: none;
+  border-radius: 0.75rem;
 }
 
-/* Estilos para badges */
+/* Border left para las cards de estadísticas */
+.border-left-success {
+  border-left: 0.25rem solid #28a745 !important;
+}
+
+/* Hover effect para las cards de acceso rápido */
+.hover-card {
+  transition: all 0.2s ease-in-out;
+  border-left: 0.25rem solid #28a745 !important;
+}
+
+.hover-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 0.5rem 1rem rgba(40, 167, 69, 0.15) !important;
+  cursor: pointer;
+}
+
+/* Estilos para texto */
+.text-gray-800 {
+  color: #2c3e50 !important;
+}
+
+.text-xs {
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
+}
+
+/* Badges personalizados */
 .badge {
   padding: 0.5em 0.8em;
   font-weight: 500;
   border-radius: 30px;
 }
 
-/* Tabla responsive */
+.badge.bg-success {
+  background-color: #28a745 !important;
+}
+
+.badge.bg-warning {
+  background-color: #ffc107 !important;
+  color: #2c3e50;
+}
+
+.badge.bg-danger {
+  background-color: #dc3545 !important;
+}
+
+/* Tabla */
 .table th {
   border-top: none;
   font-weight: 600;
-  color: #4e73df;
+  color: #28a745;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
 }
 
 .table td {
   vertical-align: middle;
+  padding: 1rem 0.75rem;
 }
 
-/* Scroll suave */
-html {
-  scroll-behavior: smooth;
+/* Opacity utilities */
+.opacity-50 {
+  opacity: 0.5;
 }
 
-/* Personalizar scrollbar */
+.opacity-90 {
+  opacity: 0.9;
+}
+
+/* Loading spinner */
+.spinner-border.text-success {
+  color: #28a745 !important;
+}
+
+/* Alert personalizada */
+.alert-success {
+  background-color: #d4edda;
+  border-color: #c3e6cb;
+  color: #155724;
+}
+
+.alert-danger {
+  background-color: #f8d7da;
+  border-color: #f5c6cb;
+  color: #721c24;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .display-1 {
+    font-size: 3rem;
+  }
+  
+  .display-6 {
+    font-size: 1.5rem;
+  }
+  
+  .table td {
+    padding: 0.75rem 0.5rem;
+    font-size: 0.9rem;
+  }
+}
+
+/* Animación para números */
+@keyframes countUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.h5 {
+  animation: countUp 0.5s ease-out;
+}
+
+/* Scrollbar personalizada (coincidiendo con reportes) */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -108,10 +163,10 @@ html {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #888;
+  background: #28a745;
   border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #555;
+  background: #218838;
 }

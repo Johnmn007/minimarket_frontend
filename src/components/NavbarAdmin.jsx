@@ -7,7 +7,7 @@ export default function NavbarAdmin() {
   const handleLogout = () => {
     logoutUser();
     navigate("/login");
-     };
+  };
 
   // Puedes agregar lógica para mostrar nombre del usuario si lo deseas
   const user = JSON.parse(localStorage.getItem("user")) || {};
@@ -51,6 +51,12 @@ export default function NavbarAdmin() {
             <li className="nav-item">
               <Link className="nav-link" to="/admin/UserRegister">
                 Registrar Usuario
+              </Link>
+            </li>
+            <li className="nav-item">
+              <Link className="nav-link" to="/admin/reportes">
+                <i className="bi bi-bar-chart-line me-1"></i>
+                Reportes
               </Link>
             </li>
           </ul>

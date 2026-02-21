@@ -1,7 +1,7 @@
 ================================================================================
 PROYECTO: minimarket_frontend
 RUTA: C:\Users\Nvidia\Desktop\minimarket_frontend
-FECHA: Fri Feb 20 09:27:56 GMT-05:00 2026
+FECHA: Fri Feb 20 23:06:12 GMT-05:00 2026
 ================================================================================
 
 
@@ -61,209 +61,7 @@ export default defineConfig([
 
 
 ------------------------------------------------------------
-------------------------------------------------------------
 
-[FILE] package.json
-------------------------------------------------------------
-{
-  "name": "minimarket_frontend",
-  "private": true,
-  "version": "0.0.0",
-  "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "lint": "eslint .",
-    "preview": "vite preview"
-  },
-  "dependencies": {
-    "axios": "^1.13.4",
-    "bootstrap": "^5.3.8",
-    "bootstrap-icons": "^1.13.1",
-    "qrcode.react": "^4.2.0",
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0",
-    "react-router-dom": "^7.12.0"
-  },
-  "devDependencies": {
-    "@eslint/js": "^9.39.1",
-    "@types/react": "^19.2.5",
-    "@types/react-dom": "^19.2.3",
-    "@vitejs/plugin-react": "^5.1.1",
-    "eslint": "^9.39.1",
-    "eslint-plugin-react-hooks": "^7.0.1",
-    "eslint-plugin-react-refresh": "^0.4.24",
-    "globals": "^16.5.0",
-    "vite": "^7.2.4"
-  }
-}
-
-------------------------------------------------------------
-
-[DIR] public/
-
-[DIR] public/img/
-
-[FILE] README.md
-------------------------------------------------------------
-# React + Vite
-
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
-
-Currently, two official plugins are available:
-
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
-
-------------------------------------------------------------
-
-[DIR] src/
-
-[DIR] src/api/
-
-[FILE] src/api/api.js
-------------------------------------------------------------
-// src/api/api.js
-
-const API_URL = "http://localhost:8080/api";
-
-/**
- * Login de usuario
- * Guarda el token JWT en localStorage
- */
-export async function loginUser(username, password) {
-  const response = await fetch(`${API_URL}/auth/signin`, {
-    method: "POST",
-    credentials: "omit",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ username, password }),
-  });
-
-  const data = await response.json();
-
-  if (!response.ok) {
-    throw new Error(data.message || "Usuario o contraseña incorrectos");
-  }
-
-  // Guardar token
-  localStorage.setItem("token", data.token);
-  localStorage.setItem("user", JSON.stringify(data));
-
-  return data;
-}
-
-/**
- * Obtiene el token JWT
- */
-export function getToken() {
-  return localStorage.getItem("token");
-}
-
-/**
- * Logout
- */
-export function logoutUser() {
-  localStorage.removeItem("token");
-  localStorage.removeItem("user");
-}
-
-/**
- * Fetch con JWT para endpoints protegidos
- */
-export async function fetchWithAuth(endpoint, options = {}) {
-  const token = getToken();
-
-  if (!token) {
-    throw new Error("No hay token. Debes iniciar sesión.");
-  }
-
-  const response = await fetch(`${API_URL}${endpoint}`, {
-    ...options,
-
-    // 🔴 CLAVE: JWT solo en headers
-    credentials: "omit",
-
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-      ...(options.headers || {}),
-    },
-  });
-
-  const data = await response.json();
-
-  if (!response.ok) {
-    throw new Error(data.message || "Error en petición autenticada");
-  }
-
-  return data;
-}
-
-/**
- * Fetch público (sin autenticación) para endpoints que no requieren JWT
- */
-export async function fetchPublic(endpoint, options = {}) {
-  const response = await fetch(`${API_URL}${endpoint}`, {
-    ...options,
-    credentials: "omit",
-    headers: {
-      "Content-Type": "application/json",
-      ...(options.headers || {}),
-    },
-  });
-
-  const data = await response.json();
-
-  if (!response.ok) {
-    throw new Error(data.message || "Error en petición pública");
-  }
-
-  return data;
-}
-
-// Obtener métodos de pago activos (requiere autenticación)
-export async function getMetodosPago() {
-  // Usamos el endpoint de prueba que devuelve: EFECTIVO, YAPE, PLIN
-  return fetchWithAuth('/test/pagos/metodos');
-}
-
-// Obtener métodos de pago activos (público, sin autenticación)
-export async function getMetodosPagoPublic() {
-  // Endpoint público para obtener métodos de pago disponibles
-  return fetchPublic('/test/pagos/metodos');
-}
-
-// Finalizar venta
-export async function finalizarVenta(data) {
-  return fetchWithAuth('/ventas/finalizar', {
-    method: 'POST',
-    body: JSON.stringify(data),
-  });
-}
-
-
-export default API_URL;
-
-
-
-
-
-
-
-
-
-
-------------------------------------------------------------
 
 [FILE] src/App.css
 ------------------------------------------------------------
@@ -309,6 +107,127 @@ export default API_URL;
 [DIR] src/assets/
 
 [DIR] src/assets/css/
+
+[FILE] src/assets/css/dashboard.css
+------------------------------------------------------------
+/* src/pages/dashboard.css */
+
+.hover-card {
+  transition: all 0.3s ease;
+  border: 1px solid rgba(0,0,0,0.05);
+}
+
+.hover-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 1rem 3rem rgba(0,0,0,.175) !important;
+  border-color: rgba(0,0,0,0.1);
+}
+
+.stat-card {
+  border-radius: 15px;
+  overflow: hidden;
+}
+
+.stat-card .card-body {
+  padding: 1.5rem;
+}
+
+.stat-icon {
+  font-size: 3rem;
+  opacity: 0.5;
+}
+
+.welcome-banner {
+  background-size: cover;
+  background-position: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.welcome-banner::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.1);
+}
+
+.welcome-banner > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Animaciones */
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.5; }
+  100% { opacity: 1; }
+}
+
+.loading-pulse {
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.card {
+  animation: slideIn 0.3s ease-out;
+}
+
+/* Estilos para badges */
+.badge {
+  padding: 0.5em 0.8em;
+  font-weight: 500;
+  border-radius: 30px;
+}
+
+/* Tabla responsive */
+.table th {
+  border-top: none;
+  font-weight: 600;
+  color: #4e73df;
+}
+
+.table td {
+  vertical-align: middle;
+}
+
+/* Scroll suave */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Personalizar scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+------------------------------------------------------------
 
 [DIR] src/assets/js/
 
@@ -685,6 +604,6 @@ export default defineConfig({
 ================================================================================
 ESTADISTICAS:
   Carpetas analizadas: 13
-  Archivos incluidos: 13
-  Tamanio total: 136387 caracteres
+  Archivos incluidos: 14
+  Tamanio total: 138505 caracteres
 ================================================================================

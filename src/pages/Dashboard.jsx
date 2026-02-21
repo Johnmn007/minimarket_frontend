@@ -1,10 +1,9 @@
 
 
-
-
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { fetchWithAuth } from "../api/api";
+import NavbarAdmin from "../components/NavbarAdmin";
 import "../assets/css/dashboard.css";
 
 export default function Dashboard() {
@@ -16,8 +15,6 @@ export default function Dashboard() {
   const role = user?.roles[0];
 
   useEffect(() => {
-    console.log("👤 Usuario logueado:", user);
-    console.log("🔑 Roles del usuario:", user?.roles);
     cargarResumen();
   }, []);
 
@@ -25,19 +22,13 @@ export default function Dashboard() {
     try {
       setLoading(true);
       const data = await fetchWithAuth("/dashboard/resumen");
-      console.log("📊 Datos del dashboard:", data);
       setResumen(data);
       setError(null);
     } catch (err) {
-      console.error("❌ Error al cargar dashboard:", err);
+      console.error("Error al cargar dashboard:", err);
+      setError(err.message);
 
-      if (err.message.includes("403") || err.message.includes("Forbidden")) {
-        setError("No tienes permisos de administrador para ver este contenido");
-      } else {
-        setError(err.message);
-      }
-
-      // Datos de ejemplo para desarrollo (opcional)
+      // Datos de ejemplo para desarrollo
       setResumen({
         ventasHoy: 1250.50,
         cantidadVentasHoy: 15,
@@ -50,8 +41,6 @@ export default function Dashboard() {
           { id: 1, nombre: "Arroz", stock: 3, stockMinimo: 10, estado: "STOCK BAJO", categoria: "Abarrotes", precio: 3.50 },
           { id: 2, nombre: "Aceite", stock: 2, stockMinimo: 5, estado: "STOCK BAJO", categoria: "Abarrotes", precio: 8.90 },
           { id: 3, nombre: "Leche", stock: 0, stockMinimo: 8, estado: "AGOTADO", categoria: "Lácteos", precio: 2.30 },
-          { id: 4, nombre: "Huevos", stock: 4, stockMinimo: 12, estado: "STOCK BAJO", categoria: "Frescos", precio: 9.50 },
-          { id: 5, nombre: "Pan", stock: 0, stockMinimo: 10, estado: "AGOTADO", categoria: "Panadería", precio: 1.20 },
         ]
       });
     } finally {
@@ -62,25 +51,16 @@ export default function Dashboard() {
   const getRoleIcon = () => {
     switch (role) {
       case "ADMIN": return "👑";
-      case "CAJERO": return "💰";
+      case "VENDEDOR": return "💰";
       case "ALMACENERO": return "📦";
       default: return "👤";
-    }
-  };
-
-  const getRoleColor = () => {
-    switch (role) {
-      case "ADMIN": return "bg-primary";
-      case "CAJERO": return "bg-success";
-      case "ALMACENERO": return "bg-warning";
-      default: return "bg-secondary";
     }
   };
 
   const getEstadoBadge = (estado) => {
     switch (estado) {
       case "AGOTADO":
-        return <span className="badge bg-dark">🔥 AGOTADO</span>;
+        return <span className="badge bg-danger">🔥 AGOTADO</span>;
       case "STOCK BAJO":
         return <span className="badge bg-warning text-dark">⚠️ STOCK BAJO</span>;
       default:
@@ -88,192 +68,350 @@ export default function Dashboard() {
     }
   };
 
+  const formatCurrency = (value) => {
+    return new Intl.NumberFormat("es-PE", {
+      style: "currency",
+      currency: "PEN",
+      minimumFractionDigits: 2,
+    }).format(value || 0);
+  };
+
+  const formatNumber = (value) => {
+    return new Intl.NumberFormat("es-PE").format(value || 0);
+  };
+
   if (loading) {
     return (
-      <div className="container mt-5 text-center">
-        <div className="spinner-border text-success" role="status">
-          <span className="visually-hidden">Cargando...</span>
+      <>
+        <NavbarAdmin />
+        <div className="container mt-5 text-center">
+          <div className="spinner-border text-success" role="status">
+            <span className="visually-hidden">Cargando...</span>
+          </div>
+          <p className="mt-2 text-muted">Cargando dashboard...</p>
         </div>
-        <p className="mt-2">Cargando dashboard...</p>
-      </div>
+      </>
     );
   }
 
   return (
     <>
+      
       <div className="container-fluid px-4">
-        {/* Header de bienvenida */}
-        <div className={`row mb-4 ${getRoleColor()} text-white rounded-3 p-4 mt-3`}>
+        {/* Header de bienvenida con estilo verde */}
+        <div className="row mb-4">
           <div className="col-12">
-            <div className="d-flex align-items-center">
-              <span className="display-1 me-3">{getRoleIcon()}</span>
-              <div>
-                <h1 className="display-6 mb-1">
-                  ¡Bienvenido, {user?.username || "Usuario"}!
-                </h1>
-                <p className="lead mb-0">
-                  Rol: <strong>{role}</strong> | {new Date().toLocaleDateString('es-PE', {
-                    weekday: 'long',
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                  })}
-                </p>
+            <div className="bg-success text-white rounded-3 p-4 mt-3 shadow">
+              <div className="d-flex align-items-center">
+                <span className="display-1 me-3">{getRoleIcon()}</span>
+                <div>
+                  <h1 className="display-6 mb-1">
+                    ¡Bienvenido, {user?.username || "Usuario"}!
+                  </h1>
+                  <p className="lead mb-0 opacity-90">
+                    <i className="bi bi-person-badge me-2"></i>
+                    Rol: <strong>{role}</strong> |
+                    <i className="bi bi-calendar3 ms-3 me-2"></i>
+                    {new Date().toLocaleDateString('es-PE', {
+                      weekday: 'long',
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
+                    })}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
         {error && (
-          <div className="alert alert-danger alert-dismissible fade show" role="alert">
+          <div className="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
             <i className="bi bi-exclamation-triangle me-2"></i>
             {error}
             <button type="button" className="btn-close" onClick={() => setError(null)}></button>
           </div>
         )}
 
-        {/* Cards de resumen para ADMIN */}
+        {/* Tarjetas de estadísticas  */}
         {role === "ADMIN" && resumen && (
           <>
-            {/* Ventas del día */}
-            <div className="row mb-4">
-              <div className="col-md-6 mb-3">
-                <div className="card bg-primary text-white h-100 shadow">
+            <div className="row g-4 mb-4">
+              {/* Tarjeta 1: Ventas Hoy */}
+              <div className="col-xl-3 col-md-6">
+                <div className="card stat-card shadow h-100">
                   <div className="card-body">
-                    <div className="d-flex justify-content-between align-items-center">
-                      <div>
-                        <h6 className="text-white-50 mb-2">Ventas Hoy</h6>
-                        <h2 className="mb-0">S/ {resumen.ventasHoy?.toFixed(2) || "0.00"}</h2>
+                    <div className="d-flex align-items-center mb-3">
+                      <div className="stat-icon-wrapper bg-success-soft me-3">
+                        <i className="bi bi-cash-stack text-success fs-3"></i>
                       </div>
-                      <i className="bi bi-cash-stack fs-1"></i>
+                      <div>
+                        <span className="stat-label m-3 text-muted text-uppercase small fw-bold">
+                          Ventas Hoy
+                        </span>
+                        <h3 className="stat-value mb-0">
+                          {formatCurrency(resumen.ventasHoy)}
+                        </h3>
+                      </div>
                     </div>
-                    <div className="mt-3">
-                      <small className="text-white-50">
-                        {resumen.cantidadVentasHoy || 0} transacciones
-                      </small>
+                    <div className="d-flex justify-content-between align-items-center">
+                      <span className="text-muted small">
+                        <i className="bi bi-calculator me-1"></i>
+                        {formatNumber(resumen.cantidadVentasHoy)} transacciones
+                      </span>
+                      <span className="stat-trend positive">
+                        <i className="bi bi-arrow-up-short"></i>
+                        +12% vs ayer
+                      </span>
+                    </div>
+                    <div className="stat-progress mt-3">
+                      <div className="progress" style={{ height: "4px" }}>
+                        <div
+                          className="progress-bar bg-success"
+                          style={{ width: "75%" }}
+                        ></div>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div className="col-md-6 mb-3">
-                <div className="card bg-info text-white h-100 shadow">
+              {/* Tarjeta 2: Usuarios Activos */}
+              <div className="col-xl-3 col-md-6">
+                <div className="card stat-card shadow h-100">
                   <div className="card-body">
-                    <div className="d-flex justify-content-between align-items-center">
-                      <div>
-                        <h6 className="text-white-50 mb-2">Usuarios Activos</h6>
-                        <h2 className="mb-0">{resumen.usuariosActivos || 0}</h2>
+                    <div className="d-flex align-items-center mb-3">
+                      <div className="stat-icon-wrapper bg-info-soft me-3">
+                        <i className="bi bi-people text-info fs-3"></i>
                       </div>
-                      <i className="bi bi-people fs-1"></i>
+                      <div>
+                        <span className="stat-label m-3 text-muted text-uppercase small fw-bold">
+                          Usuarios Activos
+                        </span>
+                        <h3 className="stat-value mb-0">
+                          {formatNumber(resumen.usuariosActivos)}
+                        </h3>
+                      </div>
                     </div>
-                    <div className="mt-3">
-                      <small className="text-white-50">
+                    <div className="d-flex justify-content-between align-items-center">
+                      <span className="text-muted small">
+                        <i className="bi bi-person-plus me-1"></i>
                         {resumen.nuevosUsuariosMes || 0} nuevos este mes
-                      </small>
+                      </span>
+                      <span className="stat-trend positive">
+                        <i className="bi bi-arrow-up-short"></i>
+                        +5%
+                      </span>
+                    </div>
+                    <div className="stat-progress mt-3">
+                      <div className="progress" style={{ height: "4px" }}>
+                        <div
+                          className="progress-bar bg-info"
+                          style={{ width: "60%" }}
+                        ></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Tarjeta 3: Total Productos */}
+              <div className="col-xl-3 col-md-6">
+                <div className="card stat-card shadow h-100">
+                  <div className="card-body">
+                    <div className="d-flex align-items-center mb-3">
+                      <div className="stat-icon-wrapper bg-primary-soft me-3">
+                        <i className="bi bi-box-seam text-primary fs-3"></i>
+                      </div>
+                      <div>
+                        <span className="stat-label m-3 text-muted text-uppercase small fw-bold">
+                          Total Productos
+                        </span>
+                        <h3 className="stat-value mb-0">
+                          {formatNumber(resumen.totalProductos)}
+                        </h3>
+                      </div>
+                    </div>
+                    <div className="d-flex justify-content-between align-items-center">
+                      <span className="text-muted small">
+                        <i className="bi bi-check-circle me-1 text-success"></i>
+                        {formatNumber(resumen.productosConStock)} con stock
+                      </span>
+                      <span className="stat-trend neutral">
+                        <i className="bi bi-dash-short"></i>
+                        Estable
+                      </span>
+                    </div>
+                    <div className="stat-progress mt-3">
+                      <div className="progress" style={{ height: "4px" }}>
+                        <div
+                          className="progress-bar bg-primary"
+                          style={{ width: "80%" }}
+                        ></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Tarjeta 4: Stock Crítico */}
+              <div className="col-xl-3 col-md-6">
+                <div className="card stat-card shadow h-100">
+                  <div className="card-body">
+                    <div className="d-flex align-items-center mb-3">
+                      <div className="stat-icon-wrapper bg-warning-soft me-3">
+                        <i className="bi bi-exclamation-triangle text-warning fs-3"></i>
+                      </div>
+                      <div>
+                        <span className="stat-label m-3 text-muted text-uppercase small fw-bold">
+                          Stock Crítico
+                        </span>
+                        <div className="d-flex align-items-baseline">
+                          <h3 className="stat-value mb-0 me-2">
+                            {formatNumber(resumen.productosStockBajo)}
+                          </h3>
+                          <span className="text-muted small">bajo</span>
+                          <h3 className="stat-value mb-0 ms-3 me-2 text-danger">
+                            {formatNumber(resumen.productosAgotados)}
+                          </h3>
+                          <span className="text-muted small">agotado</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="d-flex justify-content-between align-items-center">
+                      <span className="text-muted small">
+                        <i className="bi bi-clock-history me-1"></i>
+                        Requieren atención
+                      </span>
+                      <span className="stat-trend negative">
+                        <i className="bi bi-arrow-down-short"></i>
+                        -3% vs ayer
+                      </span>
+                    </div>
+                    <div className="stat-progress mt-3">
+                      <div className="progress" style={{ height: "4px" }}>
+                        <div
+                          className="progress-bar bg-warning"
+                          style={{ width: "45%" }}
+                        ></div>
+                        <div
+                          className="progress-bar bg-danger"
+                          style={{ width: "15%" }}
+                        ></div>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Estadísticas de productos */}
-            <div className="row mb-4">
-              <div className="col-md-3 mb-3">
-                <div className="card bg-secondary text-white h-100 shadow">
-                  <div className="card-body">
-                    <h6 className="text-white-50">Total Productos</h6>
-                    <h3 className="mb-0">{resumen.totalProductos || 0}</h3>
-                  </div>
-                </div>
-              </div>
-              <div className="col-md-3 mb-3">
-                <div className="card bg-success text-white h-100 shadow">
-                  <div className="card-body">
-                    <h6 className="text-white-50">Con Stock</h6>
-                    <h3 className="mb-0">{resumen.productosConStock || 0}</h3>
-                  </div>
-                </div>
-              </div>
-              <div className="col-md-3 mb-3">
-                <div className="card bg-warning text-white h-100 shadow">
-                  <div className="card-body">
-                    <h6 className="text-white-50">Stock Bajo</h6>
-                    <h3 className="mb-0">{resumen.productosStockBajo || 0}</h3>
-                  </div>
-                </div>
-              </div>
-              <div className="col-md-3 mb-3">
-                <div className="card bg-danger text-white h-100 shadow">
-                  <div className="card-body">
-                    <h6 className="text-white-50">Agotados</h6>
-                    <h3 className="mb-0">{resumen.productosAgotados || 0}</h3>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Tabla de productos con problemas */}
+            {/* Tabla de productos con problemas (mejorada) */}
             {resumen.productosStockBajoList?.length > 0 && (
-              <div className="row mb-4">
+              <div className="row mb-5">
                 <div className="col-12">
                   <div className="card shadow">
-                    <div className="card-header bg-warning text-white">
-                      <h5 className="mb-0">
-                        <i className="bi bi-exclamation-triangle me-2"></i>
-                        Productos que requieren atención ({resumen.productosStockBajoList.length})
-                      </h5>
+                    <div className="card-header bg-white py-3">
+                      <div className="d-flex align-items-center justify-content-between">
+                        <h5 className="mb-0 text-success">
+                          <i className="bi bi-exclamation-triangle me-2"></i>
+                          Productos que requieren atención
+                        </h5>
+                        <span className="badge bg-warning text-dark px-3 py-2">
+                          {resumen.productosStockBajoList.length} productos
+                        </span>
+                      </div>
                     </div>
-                    <div className="card-body">
+                    <div className="card-body p-0">
                       <div className="table-responsive">
-                        <table className="table table-hover">
-                          <thead className="table-light">
+                        <table className="table table-hover align-middle mb-0">
+                          <thead className="bg-light">
                             <tr>
-                              <th>ID</th>
-                              <th>Producto</th>
-                              <th>Categoría</th>
-                              <th>Precio</th>
-                              <th>Stock</th>
-                              <th>Stock Mínimo</th>
-                              <th>Estado</th>
-                              <th>Acciones</th>
+                              <th className="py-3 ps-4">Producto</th>
+                              <th className="py-3">Categoría</th>
+                              <th className="py-3 text-end">Precio</th>
+                              <th className="py-3 text-center">Stock Actual</th>
+                              <th className="py-3 text-center">Stock Mínimo</th>
+                              <th className="py-3 text-center">Estado</th>
+                              <th className="py-3 text-center pe-4">Acciones</th>
                             </tr>
                           </thead>
                           <tbody>
-                            {resumen.productosStockBajoList.map(prod => (
-                              <tr key={prod.id}>
-                                <td>#{prod.id}</td>
-                                <td>
-                                  <strong>{prod.nombre}</strong>
+                            {resumen.productosStockBajoList.map((prod, index) => (
+                              <tr key={prod.id} className="border-bottom">
+                                <td className="ps-4">
+                                  <div className="d-flex align-items-center">
+                                    <div className="product-icon bg-success-soft rounded-circle p-2 me-3">
+                                      <i className="bi bi-box text-success"></i>
+                                    </div>
+                                    <div>
+                                      <strong>{prod.nombre}</strong>
+                                      <div className="text-muted small">ID: #{prod.id}</div>
+                                    </div>
+                                  </div>
                                 </td>
-                                <td>{prod.categoria || "Sin categoría"}</td>
-                                <td>S/ {prod.precio?.toFixed(2) || "0.00"}</td>
                                 <td>
-                                  <span className={`badge ${prod.estado === 'AGOTADO' ? 'bg-dark' :
-                                      prod.estado === 'STOCK BAJO' ? 'bg-warning' : 'bg-success'
-                                    }`}>
-                                    {prod.stock}
+                                  <span className="badge bg-light text-dark px-3 py-2">
+                                    {prod.categoria || "Sin categoría"}
                                   </span>
                                 </td>
-                                <td>{prod.stockMinimo}</td>
-                                <td>{getEstadoBadge(prod.estado)}</td>
-                                <td>
+                                <td className="text-end fw-bold">
+                                  {formatCurrency(prod.precio)}
+                                </td>
+                                <td className="text-center">
+                                  <span className={`stock-badge ${prod.estado === 'AGOTADO' ? 'stock-agotado' :
+                                      prod.estado === 'STOCK BAJO' ? 'stock-bajo' : 'stock-normal'
+                                    }`}>
+                                    {prod.stock} uds
+                                  </span>
+                                </td>
+                                <td className="text-center fw-bold">
+                                  {prod.stockMinimo} uds
+                                </td>
+                                <td className="text-center">
+                                  {prod.estado === 'AGOTADO' ? (
+                                    <span className="badge bg-danger px-3 py-2">
+                                      <i className="bi bi-fire me-1"></i>
+                                      Agotado
+                                    </span>
+                                  ) : prod.estado === 'STOCK BAJO' ? (
+                                    <span className="badge bg-warning text-dark px-3 py-2">
+                                      <i className="bi bi-exclamation-circle me-1"></i>
+                                      Stock Bajo
+                                    </span>
+                                  ) : (
+                                    <span className="badge bg-success px-3 py-2">
+                                      <i className="bi bi-check-circle me-1"></i>
+                                      Normal
+                                    </span>
+                                  )}
+                                </td>
+                                <td className="text-center pe-4">
                                   <Link
                                     to={`/admin/ProductRegister?id=${prod.id}`}
-                                    className="btn btn-sm btn-outline-primary me-2"
+                                    className="btn btn-sm btn-outline-success me-2"
+                                    title="Editar producto"
                                   >
-                                    <i className="bi bi-pencil"></i> Editar
+                                    <i className="bi bi-pencil"></i>
                                   </Link>
                                   <button
-                                    className="btn btn-sm btn-outline-success"
+                                    className="btn btn-sm btn-outline-warning"
                                     onClick={() => console.log("Reabastecer", prod.id)}
+                                    title="Reabastecer"
                                   >
-                                    <i className="bi bi-plus-circle"></i> Reabastecer
+                                    <i className="bi bi-plus-circle"></i>
                                   </button>
                                 </td>
                               </tr>
                             ))}
                           </tbody>
                         </table>
+                      </div>
+                    </div>
+                    <div className="card-footer bg-white py-3">
+                      <div className="d-flex justify-content-end">
+                        <Link to="/admin/reportes/inventario" className="btn btn-link text-success">
+                          Ver todos los productos <i className="bi bi-arrow-right ms-1"></i>
+                        </Link>
                       </div>
                     </div>
                   </div>
@@ -283,100 +421,108 @@ export default function Dashboard() {
           </>
         )}
 
-        {/* Acceso rápido para otros roles */}
+        {/* Mensaje para otros roles */}
         {role !== "ADMIN" && (
           <div className="row">
             <div className="col-12">
-              <div className="alert alert-info">
+              <div className="alert alert-success border-0 shadow-sm">
                 <i className="bi bi-info-circle me-2"></i>
-                Vista simplificada para rol {role}. Próximamente más funcionalidades.
+                Vista simplificada para rol <strong>{role}</strong>. Contacta al administrador para más funcionalidades.
               </div>
             </div>
           </div>
         )}
 
-        {/* Acceso rápido general */}
+        {/* Acceso rápido - Todo con verde */}
         <div className="row mt-4">
           <div className="col-12">
-            <h4 className="border-bottom pb-2 mb-3">
+            <h4 className="border-bottom pb-2 mb-3 text-success">
               <i className="bi bi-rocket-takeoff me-2"></i>
               Acceso Rápido
             </h4>
           </div>
-          <div className="col-md-3 mb-3">
+
+          <div className="col-xl-3 col-md-6 mb-4">
             <Link to="/admin/ProductRegister" className="text-decoration-none">
-              <div className="card text-center h-100 shadow-sm hover-card">
+              <div className="card border-left-success shadow h-100 py-2 hover-card">
                 <div className="card-body">
-                  <i className="bi bi-box-seam fs-1 text-primary"></i>
-                  <h6 className="mt-2">Registrar Producto</h6>
+                  <div className="row no-gutters align-items-center">
+                    <div className="col mr-2">
+                      <div className="text-sm font-weight-bold text-success text-uppercase mb-1">
+                        Registrar <br /> Producto
+                      </div>
+                      <div className="text-muted ms-4 small">Añadir nuevo producto al inventario</div>
+                    </div>
+                    <div className="col-auto">
+                      <i className="bi bi-box-seam fs-1 text-success opacity-50"></i>
+                    </div>
+                  </div>
                 </div>
               </div>
             </Link>
           </div>
-          <div className="col-md-3 mb-3">
+
+          <div className="col-xl-3 col-md-6 mb-4">
             <Link to="/admin/UserRegister" className="text-decoration-none">
-              <div className="card text-center h-100 shadow-sm hover-card">
+              <div className="card border-left-success shadow h-100 py-2 hover-card">
                 <div className="card-body">
-                  <i className="bi bi-person-plus fs-1 text-success"></i>
-                  <h6 className="mt-2">Registrar Usuario</h6>
+                  <div className="row no-gutters align-items-center">
+                    <div className="col mr-2">
+                      <div className="text-sm font-weight-bold text-success text-uppercase mb-1">
+                        Registrar <br /> Usuario
+                      </div>
+                      <div className="text-muted ms-4 small">Crear nuevo usuario del sistema</div>
+                    </div>
+                    <div className="col-auto">
+                      <i className="bi bi-person-plus fs-1 text-success opacity-50"></i>
+                    </div>
+                  </div>
                 </div>
               </div>
             </Link>
           </div>
-          <div className="col-md-3 mb-3">
+
+          <div className="col-xl-3 col-md-6 mb-4">
+            <Link to="/admin/reportes" className="text-decoration-none">
+              <div className="card border-left-success shadow h-100 py-2 hover-card">
+                <div className="card-body">
+                  <div className="row no-gutters align-items-center">
+                    <div className="col mr-2">
+                      <div className="text-sm font-weight-bold text-success text-uppercase mb-1">
+                        Reportes
+                      </div>
+                      <div className="text-muted ms-4 small">Estadísticas y análisis de ventas</div>
+                    </div>
+                    <div className="col-auto">
+                      <i className="bi bi-bar-chart-line fs-1 text-success opacity-50"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </Link>
+          </div>
+
+          <div className="col-xl-3 col-md-6 mb-4">
             <Link to="/" className="text-decoration-none">
-              <div className="card text-center h-100 shadow-sm hover-card">
+              <div className="card border-left-success shadow h-100 py-2 hover-card">
                 <div className="card-body">
-                  <i className="bi bi-shop fs-1 text-warning"></i>
-                  <h6 className="mt-2">Tienda Pública</h6>
+                  <div className="row no-gutters align-items-center">
+                    <div className="col mr-2">
+                      <div className="text-sm font-weight-bold text-success text-uppercase mb-1">
+                        Tienda  <br /> Pública
+                      </div>
+                      <div className="text-muted  ms-4 small">Ver catálogo de productos</div>
+                    </div>
+                    <div className="col-auto">
+                      <i className="bi bi-shop fs-1 text-success opacity-50"></i>
+                    </div>
+                  </div>
                 </div>
               </div>
             </Link>
-          </div>
-          <div className="col-md-3 mb-3">
-            <div className="card text-center h-100 shadow-sm hover-card">
-              <div className="card-body">
-                <i className="bi bi-printer fs-1 text-secondary"></i>
-                <h6 className="mt-2">Reportes</h6>
-                <small className="text-muted">Próximamente</small>
-              </div>
-            </div>
           </div>
         </div>
       </div>
-
-      <style jsx>{`
-        .hover-card {
-          transition: transform 0.2s, box-shadow 0.2s;
-          cursor: pointer;
-        }
-        .hover-card:hover {
-          transform: translateY(-5px);
-          box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15) !important;
-        }
-        .card {
-          border-radius: 10px;
-          overflow: hidden;
-        }
-        .bg-primary {
-          background: linear-gradient(45deg, #4e73df, #224abe) !important;
-        }
-        .bg-success {
-          background: linear-gradient(45deg, #1cc88a, #13855c) !important;
-        }
-        .bg-warning {
-          background: linear-gradient(45deg, #f6c23e, #dda20a) !important;
-        }
-        .bg-info {
-          background: linear-gradient(45deg, #36b9cc, #258391) !important;
-        }
-        .bg-danger {
-          background: linear-gradient(45deg, #e74a3b, #be2617) !important;
-        }
-        .bg-secondary {
-          background: linear-gradient(45deg, #858796, #60616f) !important;
-        }
-      `}</style>
     </>
   );
 }
