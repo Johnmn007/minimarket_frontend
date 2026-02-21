@@ -1,7 +1,7 @@
 ================================================================================
 PROYECTO: minimarket_frontend
 RUTA: C:\Users\Nvidia\Desktop\minimarket_frontend
-FECHA: Thu Jan 15 11:34:05 GMT-05:00 2026
+FECHA: Fri Feb 20 09:27:56 GMT-05:00 2026
 ================================================================================
 
 
@@ -39,8 +39,11 @@ export default defineConfig([
 
 ------------------------------------------------------------
 
+[DIR] imagen/
+
 [FILE] index.html
 ------------------------------------------------------------
+
 <!doctype html>
 <html lang="en">
   <head>
@@ -55,10 +58,51 @@ export default defineConfig([
   </body>
 </html>
 
+
+
+------------------------------------------------------------
 ------------------------------------------------------------
 
+[FILE] package.json
+------------------------------------------------------------
+{
+  "name": "minimarket_frontend",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "lint": "eslint .",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "axios": "^1.13.4",
+    "bootstrap": "^5.3.8",
+    "bootstrap-icons": "^1.13.1",
+    "qrcode.react": "^4.2.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "react-router-dom": "^7.12.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "@types/react": "^19.2.5",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.1.1",
+    "eslint": "^9.39.1",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-refresh": "^0.4.24",
+    "globals": "^16.5.0",
+    "vite": "^7.2.4"
+  }
+}
+
+------------------------------------------------------------
 
 [DIR] public/
+
+[DIR] public/img/
 
 [FILE] README.md
 ------------------------------------------------------------
@@ -98,18 +142,11 @@ const API_URL = "http://localhost:8080/api";
 export async function loginUser(username, password) {
   const response = await fetch(`${API_URL}/auth/signin`, {
     method: "POST",
-
-    // 🔴 CLAVE: NO usar cookies (JWT va en headers)
     credentials: "omit",
-
     headers: {
       "Content-Type": "application/json",
     },
-
-    body: JSON.stringify({
-      username,
-      password,
-    }),
+    body: JSON.stringify({ username, password }),
   });
 
   const data = await response.json();
@@ -172,6 +209,49 @@ export async function fetchWithAuth(endpoint, options = {}) {
   return data;
 }
 
+/**
+ * Fetch público (sin autenticación) para endpoints que no requieren JWT
+ */
+export async function fetchPublic(endpoint, options = {}) {
+  const response = await fetch(`${API_URL}${endpoint}`, {
+    ...options,
+    credentials: "omit",
+    headers: {
+      "Content-Type": "application/json",
+      ...(options.headers || {}),
+    },
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.message || "Error en petición pública");
+  }
+
+  return data;
+}
+
+// Obtener métodos de pago activos (requiere autenticación)
+export async function getMetodosPago() {
+  // Usamos el endpoint de prueba que devuelve: EFECTIVO, YAPE, PLIN
+  return fetchWithAuth('/test/pagos/metodos');
+}
+
+// Obtener métodos de pago activos (público, sin autenticación)
+export async function getMetodosPagoPublic() {
+  // Endpoint público para obtener métodos de pago disponibles
+  return fetchPublic('/test/pagos/metodos');
+}
+
+// Finalizar venta
+export async function finalizarVenta(data) {
+  return fetchWithAuth('/ventas/finalizar', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+
 export default API_URL;
 
 
@@ -183,107 +263,10 @@ export default API_URL;
 
 
 
-
-
-
-// // src/api/api.js
-// const API_URL = "http://localhost:8080/api";
-
-// /**
-//  * Realiza login de usuario.
-//  * Guarda el token JWT en localStorage si es exitoso.
-//  *
-//  * @param {string} username
-//  * @param {string} password
-//  * @returns {Promise<object>} data del login { token, username, roles... }
-//  */
-// export async function loginUser(username, password) {
-//   try {
-//     const response = await fetch(`${API_URL}/auth/signin`, {
-//       method: "POST",
-//       headers: {
-//         "Content-Type": "application/json",
-//       },
-//       body: JSON.stringify({ username, password }),
-//     });
-
-//     if (!response.ok) {
-//       const errorData = await response.json();
-//       throw new Error(errorData.message || "Usuario o contraseña inválidos");
-//     }
-
-//     const data = await response.json();
-
-//     // Guardar token en localStorage
-//     if (data.token) {
-//       localStorage.setItem("token", data.token);
-//     }
-
-//     return data;
-//   } catch (error) {
-//     console.error("Error en login:", error);
-//     throw error;
-//   }
-// }
-
-// /**
-//  * Devuelve el token JWT almacenado en localStorage
-//  * @returns {string|null}
-//  */
-// export function getToken() {
-//   return localStorage.getItem("token");
-// }
-
-// /**
-//  * Elimina el token JWT de localStorage (logout)
-//  */
-// export function logoutUser() {
-//   localStorage.removeItem("token");
-// }
-
-// /**
-//  * Helper para hacer peticiones protegidas a la API.
-//  *
-//  * @param {string} endpoint - endpoint relativo, por ejemplo '/products'
-//  * @param {object} options - opciones adicionales para fetch
-//  * @returns {Promise<object>} respuesta de la API
-//  */
-// export async function fetchWithAuth(endpoint, options = {}) {
-//   const token = getToken();
-
-//   if (!token) {
-//     throw new Error("Token no encontrado. Debes iniciar sesión.");
-//   }
-
-//   const response = await fetch(`${API_URL}${endpoint}`, {
-//     ...options,
-//     headers: {
-//       "Content-Type": "application/json",
-//       "Authorization": `Bearer ${token}`,
-//       ...(options.headers || {}),
-//     },
-//   });
-
-//   if (!response.ok) {
-//     const errorData = await response.json().catch(() => ({}));
-//     throw new Error(errorData.message || "Error en la petición autenticada");
-//   }
-
-//   return response.json();
-// }
-
-// export default API_URL;
-
 ------------------------------------------------------------
 
 [FILE] src/App.css
 ------------------------------------------------------------
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
-}
 
 .logo {
   height: 6em;
@@ -325,21 +308,83 @@ export default API_URL;
 
 [DIR] src/assets/
 
+[DIR] src/assets/css/
+
+[DIR] src/assets/js/
+
+[DIR] src/components/
+
+[DIR] src/context/
+
+[DIR] src/hooks/
+
+[FILE] src/hooks/useProductos.js
+------------------------------------------------------------
+// src/hooks/useProductos.js
+import { useState, useEffect } from 'react';
+import { fetchWithAuth } from '../api/api';
+
+export function useProductos() {
+  const [productos, setProductos] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  // Listar productos
+  const listarProductos = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await fetchWithAuth('/productos');
+      setProductos(data);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Crear producto
+  const crearProducto = async (producto) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await fetchWithAuth('/productos', {
+        method: 'POST',
+        body: JSON.stringify(producto),
+      });
+      // Opcional: actualizar la lista local
+      setProductos(prev => [...prev, data]);
+      return data;
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Cargar productos al montar el hook
+  useEffect(() => {
+    listarProductos();
+  }, []);
+
+  return {
+    productos,
+    loading,
+    error,
+    listarProductos,
+    crearProducto,
+  };
+}
+------------------------------------------------------------
+
 [FILE] src/index.css
 ------------------------------------------------------------
-:root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+*,
+::before,
+::after {
+  box-sizing: border-box;
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
 a {
@@ -353,11 +398,7 @@ a:hover {
 
 body {
   margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
-}
+ }
 
 h1 {
   font-size: 3.2em;
@@ -395,10 +436,128 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+@media print {
+  body {
+    background: white;
+  }
+
+  button {
+    display: none;
+  }
+}
+
+.ticket-container {
+  max-width: 400px;
+  font-family: "Courier New", monospace;
+  background-color: white;
+  border: 1px solid #ddd;
+  padding: 1rem;
+  margin: auto;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.ticket-container h4 {
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+}
+
+.ticket-container table {
+  font-size: 0.85rem;
+}
+
+.ticket-container .btn {
+  min-width: 100px;
+}
+
+.card-body > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.card-body > div > div {
+  display: flex;
+  align-items: center;
+}
+
+.btn-outline-secondary {
+  padding: 0 10px;
+}
+
+
 
 ------------------------------------------------------------
 
 [DIR] src/pages/
+
+[FILE] src/pages/login.css
+------------------------------------------------------------
+
+.placeholder-small::placeholder {
+  font-size: 1rem;
+  color: #6c757d; /* gris Bootstrap */
+}
+
+body {
+    background: #eaeaea;
+    min-height: 100vh;
+}
+
+.card {
+    border-radius: 15px !important;
+}
+
+.logo {
+    text-align: center;
+    margin-bottom: 120px;
+}
+
+.logo h2 {
+    color: #2e7d32;
+    margin-top: 10px;
+}
+
+/* Estilos para los input-group */
+.input-group-text {
+    background: #f3f3f3;
+    border: none;
+    border-radius: 8px 0 0 8px !important;
+}
+
+.form-control {
+    background: #f3f3f3;
+    border: none;
+    border-radius: 0 8px 8px 0 !important;
+}
+
+.form-control:focus {
+    background: #f3f3f3;
+    box-shadow: none;
+    border: none;
+}
+
+.btn-success {
+    background: linear-gradient(#4caf50, #2e7d32) !important;
+    border: none !important;
+    border-radius: 8px !important;
+    font-size: 16px;
+}
+
+.btn-success:hover {
+    opacity: 0.9;
+}
+
+#mensaje {
+    margin-top: 15px;
+    font-size: 14px;
+}
+
+
+
+
+------------------------------------------------------------
+
+[DIR] src/routes/
 
 [FILE] TreePrinter.java
 ------------------------------------------------------------
@@ -525,7 +684,7 @@ export default defineConfig({
 
 ================================================================================
 ESTADISTICAS:
-  Carpetas analizadas: 5
-  Archivos incluidos: 11
-  Tamanio total: 122284 caracteres
+  Carpetas analizadas: 13
+  Archivos incluidos: 13
+  Tamanio total: 136387 caracteres
 ================================================================================

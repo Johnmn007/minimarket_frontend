@@ -23,7 +23,7 @@ export async function loginUser(username, password) {
   }
 
   // Guardar token
-  localStorage.setItem("token", data.accessToken);
+  localStorage.setItem("token", data.token);
   localStorage.setItem("user", JSON.stringify(data));
 
   return data;
@@ -54,15 +54,46 @@ export async function fetchWithAuth(endpoint, options = {}) {
     throw new Error("No hay token. Debes iniciar sesión.");
   }
 
+  try {
+    const response = await fetch(`${API_URL}${endpoint}`, {
+      ...options,
+      credentials: "omit",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+        ...(options.headers || {}),
+      },
+    });
+
+    // Manejar error 401 (no autorizado)
+    if (response.status === 401) {
+      logoutUser();
+      window.location.href = "/admin/login";
+      throw new Error("Sesión expirada. Por favor, inicia sesión nuevamente.");
+    }
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || `Error ${response.status}: ${response.statusText}`);
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Error en fetchWithAuth:", error);
+    throw error;
+  }
+}
+
+/**
+ * Fetch público (sin autenticación)
+ */
+export async function fetchPublic(endpoint, options = {}) {
   const response = await fetch(`${API_URL}${endpoint}`, {
     ...options,
-
-    // 🔴 CLAVE: JWT solo en headers
     credentials: "omit",
-
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
       ...(options.headers || {}),
     },
   });
@@ -70,19 +101,28 @@ export async function fetchWithAuth(endpoint, options = {}) {
   const data = await response.json();
 
   if (!response.ok) {
-    throw new Error(data.message || "Error en petición autenticada");
+    throw new Error(data.message || "Error en petición pública");
   }
 
   return data;
 }
 
+// Obtener métodos de pago (con autenticación - para admin)
+export async function getMetodosPago() {
+  return fetchWithAuth('/test/pagos/metodos');
+}
+
+// Obtener métodos de pago (público - para clientes en el modal de compra)
+export async function getMetodosPagoPublic() {
+  return fetchPublic('/test/pagos/metodos');
+}
+
+// Finalizar venta
+export async function finalizarVenta(data) {
+  return fetchWithAuth('/ventas/finalizar', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
 export default API_URL;
-
-
-
-
-
-
-
-
-

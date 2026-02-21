@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import ProductCard from "../components/ProductCard";
 import { useCart } from "../context/CartContext";
 import { useFiltradoProductos } from "../hooks/useFiltradoProductos";
+import MetodoPagoModal from '../components/MetodoPagoModal';
 
 const categorias = [
   "Todos",
@@ -26,6 +27,9 @@ export default function PublicCatalog() {
   // Usamos el hook de filtrado
   const { productosFiltrados, categoriaSeleccionada, setCategoriaSeleccionada } = useFiltradoProductos(productos);
 
+  const [showModal, setShowModal] = useState(false);
+
+  
   useEffect(() => {
     fetch("http://localhost:8080/api/productos")
       .then((res) => res.json())
@@ -142,7 +146,11 @@ export default function PublicCatalog() {
                 <strong className="text-success">S/ {total.toFixed(2)}</strong>
               </div>
 
-              <button className="btn btn-success w-100 mb-3" disabled={carrito.length === 0} onClick={() => navigate("/ticket")}>
+              <button 
+                className="btn btn-success w-100 mb-3" 
+                disabled={carrito.length === 0} 
+                onClick={() => setShowModal(true)}   // 👈 Ahora abre el modal
+              >
                 Finalizar Compra
               </button>
 
@@ -153,6 +161,11 @@ export default function PublicCatalog() {
           </div>
         </div>
       </div>
+
+      <MetodoPagoModal 
+        show={showModal} 
+        onClose={() => setShowModal(false)} 
+      />
     </div>
   );
 }

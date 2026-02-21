@@ -1,21 +1,27 @@
-// src/pages/Ticket.jsx
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 
 export default function Ticket() {
-  const { carrito, total } = useCart();
+  const { carrito: contextCarrito, total: contextTotal, limpiarCarrito } = useCart();
   const navigate = useNavigate();
+  const location = useLocation();
 
-  // Calculamos IGV y subtotal
+  // Datos recibidos desde el modal (si existen)
+  const { venta, carrito: stateCarrito, metodoPago: stateMetodoPago, total: stateTotal } = location.state || {};
+
+  // Usar datos del state si vinieron, si no, usar el contexto
+  const carrito = stateCarrito || contextCarrito;
+  const total = stateTotal || contextTotal;
+  const metodoPago = stateMetodoPago || (venta && venta.metodoPago) || "No especificado";
+  const ventaId = venta?.ventaId || null;
+
   const igv = total * 0.18;
   const subtotal = total - igv;
 
-  // Función para formatear moneda en PEN
   const formatCurrency = (num) =>
     num.toLocaleString("es-PE", { style: "currency", currency: "PEN" });
 
-  // Fecha y hora formateadas
   const fecha = new Date();
   const fechaStr = fecha.toLocaleDateString("es-PE");
   const horaStr = fecha.toLocaleTimeString("es-PE", {
@@ -23,6 +29,14 @@ export default function Ticket() {
     minute: "2-digit",
     second: "2-digit",
   });
+
+  const handleCerrar = () => {
+    // Si se realizó una venta, limpiar carrito del contexto
+    if (ventaId) {
+      limpiarCarrito();
+    }
+    navigate("/");
+  };
 
   return (
     <div
@@ -33,7 +47,6 @@ export default function Ticket() {
         backgroundColor: "white",
       }}
     >
-      {/* <div className="container-fluid  w-100 bg-success mb-2" style={{ height: "3em" }}></div> */}
       <div className="text-center mb-3">
         <h4 className="mb-0">🛒 MiniMarket</h4>
         <small>Av. Principal 123, Trujillo</small>
@@ -46,7 +59,7 @@ export default function Ticket() {
 
       <div className="d-flex justify-content-between mb-2 small">
         <span>
-          <strong>Boleta Nº:</strong> B001-1176
+          <strong>Boleta Nº:</strong> {ventaId ? `B001-${ventaId}` : "B001-1176"}
         </span>
         <span>
           <strong>Fecha:</strong> {fechaStr}
@@ -95,12 +108,14 @@ export default function Ticket() {
         <div style={{ fontWeight: "bold", fontSize: "1.2rem" }}>
           TOTAL: <span className="text-success">{formatCurrency(total)}</span>
         </div>
+        <div className="mt-1">
+          <small>Método de pago: <strong>{metodoPago}</strong></small>
+        </div>
       </div>
 
       <div className="text-center small text-muted mt-3">
         <div>
-          Total de productos:{" "}
-          {carrito.reduce((acc, item) => acc + item.cantidad, 0)}
+          Total de productos: {carrito.reduce((acc, item) => acc + item.cantidad, 0)}
         </div>
         <div>¡Gracias por su compra! Vuelva pronto</div>
         <div className="mt-2">
@@ -109,7 +124,7 @@ export default function Ticket() {
       </div>
 
       <div className="d-flex justify-content-between mt-3">
-        <button className="btn btn-secondary btn-sm" onClick={() => navigate("/public-catalog")}>
+        <button className="btn btn-secondary btn-sm" onClick={handleCerrar}>
           Cerrar
         </button>
         <button

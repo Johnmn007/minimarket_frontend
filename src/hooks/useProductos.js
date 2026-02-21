@@ -1,23 +1,56 @@
-const API_URL = "http://localhost:8080/api/productos";
+// src/hooks/useProductos.js
+import { useState, useEffect } from 'react';
+import { fetchWithAuth } from '../api/api';
 
 export function useProductos() {
-  const crearProducto = async (producto) => {
-    const response = await fetch(API_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(producto),
-    });
+  const [productos, setProductos] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-    if (!response.ok) {
-      throw new Error("Error al crear producto");
+  // Listar productos
+  const listarProductos = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await fetchWithAuth('/productos');
+      setProductos(data);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
     }
-
-    return await response.json();
   };
 
+  // Crear producto
+  const crearProducto = async (producto) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await fetchWithAuth('/productos', {
+        method: 'POST',
+        body: JSON.stringify(producto),
+      });
+      // Opcional: actualizar la lista local
+      setProductos(prev => [...prev, data]);
+      return data;
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Cargar productos al montar el hook
+  useEffect(() => {
+    listarProductos();
+  }, []);
+
   return {
+    productos,
+    loading,
+    error,
+    listarProductos,
     crearProducto,
   };
 }

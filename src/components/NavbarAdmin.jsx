@@ -39,6 +39,11 @@ export default function NavbarAdmin() {
               </Link>
             </li>
             <li className="nav-item">
+              <Link className="nav-link" to="/ProductCatalog">
+                Minimarket
+              </Link>
+            </li>
+            <li className="nav-item">
               <Link className="nav-link" to="/admin/ProductRegister">
                 Registrar Producto
               </Link>
